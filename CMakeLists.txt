@@ -32,7 +32,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 #file(COPY "example/" DESTINATION "example/")
 
 #Copy serial dll
-file(COPY "${CMAKE_BINARY_DIR}/serial/bin/libserial.dll" DESTINATION "${CMAKE_BINARY_DIR}")
+if (WIN32)
+    file(COPY "${CMAKE_BINARY_DIR}/serial/bin/libserial.dll" DESTINATION "${CMAKE_BINARY_DIR}")
+endif()
 
 #Default is 32bit
 if (NOT DEFINED TARGET_ARCH)
@@ -40,9 +42,7 @@ if (NOT DEFINED TARGET_ARCH)
 endif()
 
 #Set cache entry
-if (WIN32)
-    set(TARGET_ARCH "32" CACHE STRING "Set architecture type (32 or 64)")
-endif()
+set(TARGET_ARCH "32" CACHE STRING "Set architecture type (32 or 64)")
 
 #Configure header file
 configure_file(CMakeConfig.hpp.in CMakeConfig.hpp)
