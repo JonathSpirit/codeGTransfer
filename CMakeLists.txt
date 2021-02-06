@@ -80,12 +80,12 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 endif()
 
+#Executable
+add_executable(${PROJECT_NAME})
+
 #Dependency
 add_dependencies(${PROJECT_NAME} catkin)
 add_dependencies(${PROJECT_NAME} serial)
-
-#Executable
-add_executable(${PROJECT_NAME})
 
 #Includes path
 target_include_directories(${PROJECT_NAME} PUBLIC "include/")
