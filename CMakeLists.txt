@@ -96,7 +96,12 @@ target_sources(${PROJECT_NAME} PUBLIC "src/main.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
 
 #Library
-target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.so")
+endif()
+
 
 #Add test
 #add_test(NAME "CompilingTestFile" COMMAND ${PROJECT_NAME} "--in=example/test")
