@@ -98,10 +98,17 @@ target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
 
 #Copy serial dll
 if (WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-                ${CMAKE_BINARY_DIR}/serial/bin/libserial.dll
-                ${CMAKE_BINARY_DIR}/libserial.dll)
+    if (MSVC)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_BINARY_DIR}/serial/bin/serial.dll
+                    ${CMAKE_BINARY_DIR}/serial.dll)
+    else ()
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                    ${CMAKE_BINARY_DIR}/serial/bin/libserial.dll
+                    ${CMAKE_BINARY_DIR}/libserial.dll)
+    endif ()
 endif()
 
 #Library
