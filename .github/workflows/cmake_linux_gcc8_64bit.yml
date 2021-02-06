@@ -35,7 +35,7 @@ jobs:
       run: sudo apt-get update
       
     - name: Install dependency
-      run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential python-rosdep
+      run: sudo apt-get install python3-catkin-pkg python-catkin-pkg python3-empy python-empy python-nose python-setuptools libgtest-dev build-essential python-rosdep python3-rosdep2
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable

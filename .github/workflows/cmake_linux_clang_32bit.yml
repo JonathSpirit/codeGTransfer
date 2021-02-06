@@ -17,6 +17,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        # Semantic version range syntax or exact version of a Python version
+        python-version: '3.8'
+        # Optional - x64 or x86 architecture, defaults to x64
+        architecture: 'x64'
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
@@ -28,7 +36,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
-      run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential
+      run: sudo apt-get install python3-catkin-pkg python-catkin-pkg python3-empy python-empy python-nose python-setuptools libgtest-dev build-essential python-rosdep python3-rosdep2
      
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
