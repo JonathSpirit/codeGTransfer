@@ -31,7 +31,7 @@ jobs:
       run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
-      run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential python-rosdep python3-colcon-common-extensions python3-vcstool
+      run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential python-rosdep
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
