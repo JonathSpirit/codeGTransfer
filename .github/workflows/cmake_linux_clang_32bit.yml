@@ -27,6 +27,9 @@ jobs:
       # Removing "file not found" bug with clang
       run: sudo apt-get update && sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
+    - name: Install empy
+      run: sudo apt-get install python3-empy
+     
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
       # access regardless of the host operating system
