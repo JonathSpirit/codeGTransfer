@@ -39,7 +39,7 @@ jobs:
       run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
-      run: sudo apt-get install python3-pip python3-setuptools
+      run: sudo apt-get install python3-pip python3-setuptools python3-empy
       
     - name: Install dependency
       run: sudo pip3 install empy catkin-pkg
