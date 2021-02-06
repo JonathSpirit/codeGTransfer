@@ -31,10 +31,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
 #Copy example folder
 #file(COPY "example/" DESTINATION "example/")
 
-#Copy serial dll
-if (WIN32)
-    file(COPY "${CMAKE_BINARY_DIR}/serial/bin/libserial.dll" DESTINATION "${CMAKE_BINARY_DIR}")
-endif()
+
 
 #Default is 32bit
 if (NOT DEFINED TARGET_ARCH)
@@ -95,12 +92,24 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/
 target_sources(${PROJECT_NAME} PUBLIC "src/main.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
 
+#Dependency
+add_dependencies(${PROJECT_NAME} catkin serial)
+
+#Copy serial dll
+if (WIN32)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_BINARY_DIR}/serial/bin/libserial.dll
+                ${CMAKE_BINARY_DIR}/libserial.dll)
+endif()
+
 #Library
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.so")
 endif()
+
 
 
 #Add test
