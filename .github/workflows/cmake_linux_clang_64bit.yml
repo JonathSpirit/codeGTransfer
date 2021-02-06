@@ -23,8 +23,8 @@ jobs:
       # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{github.workspace}}/build
       
-    - name: Install empy
-      run: sudo apt-get install python3-empy
+    - name: Install dependency
+      run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable

@@ -26,6 +26,10 @@ jobs:
       shell: bash
       run: pip install empy
 
+    - name: Installing catkin_pkg
+      shell: bash
+      run: pip install catkin_pkg
+
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
       # access regardless of the host operating system
