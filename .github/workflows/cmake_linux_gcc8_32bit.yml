@@ -23,9 +23,12 @@ jobs:
       # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{github.workspace}}/build
       
+    - name: update and upgrade
+      run: sudo apt-get update && sudo apt-get upgrade
+      
     - name: Install c c++ lib (32bit)
       # Removing "file not found" bug with gcc
-      run: sudo apt-get update && sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
+      run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
       run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential

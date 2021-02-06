@@ -106,7 +106,11 @@ endif()
 
 #Library
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
+    if (MSVC)
+        target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.lib")
+    else()
+        target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
+    endif()
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.so")
 endif()
