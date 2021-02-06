@@ -80,6 +80,10 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 endif()
 
+#Dependency
+add_dependencies(${PROJECT_NAME} catkin)
+add_dependencies(${PROJECT_NAME} serial)
+
 #Executable
 add_executable(${PROJECT_NAME})
 
@@ -91,9 +95,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/
 #Sources file
 target_sources(${PROJECT_NAME} PUBLIC "src/main.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
-
-#Dependency
-add_dependencies(${PROJECT_NAME} catkin serial)
 
 #Copy serial dll
 if (WIN32)
