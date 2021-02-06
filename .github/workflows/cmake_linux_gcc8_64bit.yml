@@ -23,11 +23,14 @@ jobs:
       # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{github.workspace}}/build
       
-    - name: update and upgrade
-      run: sudo apt-get update && sudo apt-get upgrade
+    - name: update
+      run: sudo apt-get update
       
     - name: Install dependency
       run: sudo apt-get install python-catkin-pkg python-empy python-nose python-setuptools libgtest-dev build-essential
+      
+    - name: Weird fix
+      run: sudo apt-get update && sudo apt-get install --only-upgrade python-catkin-pkg
       
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
