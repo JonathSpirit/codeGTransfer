@@ -32,6 +32,9 @@ jobs:
       
     - name: Install dependency
       run: sudo apt-get install catkin
+      
+    - name: Link
+      run: ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
