@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  BUILD_TYPE: Release32
   ARCH: "32"
 
 jobs:
@@ -29,9 +29,6 @@ jobs:
     - name: Install c c++ lib (32bit)
       # Removing "file not found" bug with gcc
       run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
-      
-    - name: Clear some package
-      run: sudo apt-get purge python-rosdep2 python3-rosdep2
       
     - name: Install dependency
       run: sudo apt-get install catkin
