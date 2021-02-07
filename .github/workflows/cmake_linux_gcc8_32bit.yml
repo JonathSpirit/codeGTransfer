@@ -28,7 +28,7 @@ jobs:
       
     - name: Install c c++ lib (32bit)
       # Removing "file not found" bug with gcc
-      run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev lib32stdc++6
+      run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6-i386 libc6-dev-i386 lib32stdc++6
       
     - name: Install dependency
       run: sudo apt-get install catkin
