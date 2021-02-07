@@ -2,31 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 include(ExternalProject)
 
-if (WIN32)
-    ExternalProject_Add(catkin
-        GIT_REPOSITORY  https://github.com/ros/catkin.git
-        GIT_TAG         noetic-devel
-        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/catkin
-        INSTALL_COMMAND ""
-    )
-endif()
-
-if (WIN32)
-    ExternalProject_Add(serial
-        GIT_REPOSITORY  https://github.com/wjwwood/serial.git
-        GIT_TAG         master
-        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
-        CMAKE_ARGS      -D catkin_DIR=${CMAKE_BINARY_DIR}/catkin-prefix/src/catkin-build/devel/share/catkin/cmake
-    )
-else()
-    ExternalProject_Add(serial
-        GIT_REPOSITORY  https://github.com/wjwwood/serial.git
-        GIT_TAG         master
-        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
-    )
-endif()
-
-
 #Project
 project(codeGTransfer VERSION 0.1)
 
@@ -45,6 +20,43 @@ endif()
 #Set cache entry
 set(TARGET_ARCH "32" CACHE STRING "Set architecture type (32 or 64)")
 
+#Get compiler 32/64 flag
+set(TARGET_ARCH_FLAG)
+
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    if (TARGET_ARCH MATCHES "32")
+        set(TARGET_ARCH_FLAG "-m32")
+    else()
+        set(TARGET_ARCH_FLAG "-m64")
+    endif()
+endif()
+
+#Add external project
+if (WIN32)
+    ExternalProject_Add(catkin
+        GIT_REPOSITORY  https://github.com/ros/catkin.git
+        GIT_TAG         noetic-devel
+        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/catkin
+        INSTALL_COMMAND ""
+    )
+endif()
+
+ExternalProject_Add(serial
+    GIT_REPOSITORY  https://github.com/wjwwood/serial.git
+    GIT_TAG         master
+    CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
+    if (WIN32)
+        CMAKE_ARGS      -D catkin_DIR=${CMAKE_BINARY_DIR}/catkin-prefix/src/catkin-build/devel/share/catkin/cmake
+        if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+            CMAKE_ARGS      -D CMAKE_CXX_FLAGS=${TARGET_ARCH_FLAG}
+        endif()
+    else()
+        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
+        CMAKE_ARGS      -D CMAKE_CXX_FLAGS=${TARGET_ARCH_FLAG}
+    endif()
+    CMAKE_ARGS      -D CMAKE_BUILD_TYPE=Release
+)
+
 #Configure header file
 configure_file(CMakeConfig.hpp.in CMakeConfig.hpp)
 
@@ -55,13 +67,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 #Set compiler options
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # using Clang
-    if (TARGET_ARCH MATCHES "32")
-        #32bit
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -m32")
-    else()
-        #64bit
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -m64")
-    endif()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic ${TARGET_ARCH_FLAG}")
     
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -72,13 +78,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 else()
     # using GCC
-    if (TARGET_ARCH MATCHES "32")
-        #32bit
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -m32")
-    else()
-        #64bit
-        set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -m64")
-    endif()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic ${TARGET_ARCH_FLAG}")
     
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
