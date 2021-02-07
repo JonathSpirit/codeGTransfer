@@ -31,7 +31,7 @@ jobs:
       run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
-      run: sudo apt-get install python3-setuptools python3-empy python3-rosdep libgtest-dev build-essential python3-catkin-pkg 
+      run: sudo apt-get install python-empy python-catkin-pkg 
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
@@ -41,7 +41,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -D CMAKE_C_COMPILER=gcc-8 -D CMAKE_CXX_COMPILER=g++-8 -D PYTHON_EXECUTABLE=/usr/bin/python3 -D CMAKE_BUILD_TYPE=$BUILD_TYPE  -D TARGET_ARCH=$ARCH
+      run: cmake $GITHUB_WORKSPACE -D CMAKE_C_COMPILER=gcc-8 -D CMAKE_CXX_COMPILER=g++-8 -D CMAKE_BUILD_TYPE=$BUILD_TYPE  -D TARGET_ARCH=$ARCH
 
     - name: Build
       working-directory: ${{github.workspace}}/build
