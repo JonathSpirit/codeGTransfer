@@ -1,25 +1,34 @@
 cmake_minimum_required(VERSION 3.10)
 
 include(ExternalProject)
-ExternalProject_Add(catkin
-    GIT_REPOSITORY  https://github.com/ros/catkin.git
-    GIT_TAG         noetic-devel
-    CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/catkin
-    INSTALL_COMMAND ""
-)
 
-ExternalProject_Add(serial
-    GIT_REPOSITORY  https://github.com/wjwwood/serial.git
-    GIT_TAG         master
-    CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
-    CMAKE_ARGS      -D catkin_DIR=${CMAKE_BINARY_DIR}/catkin-prefix/src/catkin-build/devel/share/catkin/cmake
-)
+if (WIN32)
+    ExternalProject_Add(catkin
+        GIT_REPOSITORY  https://github.com/ros/catkin.git
+        GIT_TAG         noetic-devel
+        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/catkin
+        INSTALL_COMMAND ""
+    )
+endif()
+
+if (WIN32)
+    ExternalProject_Add(serial
+        GIT_REPOSITORY  https://github.com/wjwwood/serial.git
+        GIT_TAG         master
+        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
+        CMAKE_ARGS      -D catkin_DIR=${CMAKE_BINARY_DIR}/catkin-prefix/src/catkin-build/devel/share/catkin/cmake
+    )
+else()
+    ExternalProject_Add(serial
+        GIT_REPOSITORY  https://github.com/wjwwood/serial.git
+        GIT_TAG         master
+        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
+    )
+endif()
+
 
 #Project
 project(codeGTransfer VERSION 0.1)
-
-#Enabling CTest
-#enable_testing()
 
 #Policy
 cmake_policy(SET CMP0076 NEW) #target_sources
@@ -27,11 +36,6 @@ cmake_policy(SET CMP0076 NEW) #target_sources
 #Variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
-
-#Copy example folder
-#file(COPY "example/" DESTINATION "example/")
-
-
 
 #Default is 32bit
 if (NOT DEFINED TARGET_ARCH)
@@ -84,7 +88,10 @@ endif()
 add_executable(${PROJECT_NAME})
 
 #Dependency
-add_dependencies(${PROJECT_NAME} catkin)
+if (WIN32)
+    add_dependencies(${PROJECT_NAME} catkin)
+endif()
+
 add_dependencies(${PROJECT_NAME} serial)
 
 #Includes path
@@ -121,8 +128,3 @@ if (WIN32)
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.so")
 endif()
-
-
-
-#Add test
-#add_test(NAME "CompilingTestFile" COMMAND ${PROJECT_NAME} "--in=example/test")
