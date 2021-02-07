@@ -31,7 +31,10 @@ jobs:
       run: sudo apt-get install gcc-8-multilib g++-8-multilib libc6 libc6-dev
       
     - name: Install dependency
-      run: sudo apt-get install python-empy python-catkin-pkg python-rosdep
+      run: sudo apt-get install python-empy python-catkin-pkg python-rosdep python-rosdistro python-rosinstall python-rosinstall-generator python-bloom
+      
+    - name: Install dependency
+      run: sudo apt-get install --only-upgrade python-rosdistro python-rosdep python-rosinstall python-rosinstall-generator python-bloom
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
