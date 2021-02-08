@@ -18,16 +18,23 @@ if (NOT DEFINED TARGET_ARCH)
 endif()
 
 #Set cache entry
-set(TARGET_ARCH "32" CACHE STRING "Set architecture type (32 or 64)")
+set(TARGET_ARCH "" CACHE STRING "Set architecture type (32 or 64)")
 
-#Get compiler 32/64 flag
-set(TARGET_ARCH_FLAG)
+#Not defined = default to empty
+if (NOT DEFINED TARGET_ARCH)
+    set(TARGET_ARCH "")
+endif()
+
+#Set compiler 32/64 flag
+set(TARGET_ARCH_FLAG "")
 
 if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     if (TARGET_ARCH MATCHES "32")
         set(TARGET_ARCH_FLAG "-m32")
-    else()
+    elseif (TARGET_ARCH MATCHES "64")
         set(TARGET_ARCH_FLAG "-m64")
+    else()
+        set(TARGET_ARCH_FLAG "")
     endif()
 endif()
 
