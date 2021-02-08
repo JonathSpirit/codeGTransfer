@@ -21,11 +21,15 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <thread>
 
 #include "serial/serial.h"
 
 #include "C_string.hpp"
+#include "C_checksum.hpp"
 #include "CMakeConfig.hpp"
+
+#define MAX_NUMOFDATA 100
 
 using namespace std;
 
@@ -39,7 +43,7 @@ void ShowAllPorts()
     }
 }
 
-void printHelp()
+void PrintHelp()
 {
     std::cout << "codeGTransfer usage :" << std::endl << std::endl;
 
@@ -61,7 +65,7 @@ void printHelp()
     std::cout << "Ask the user how he want to compile his file (interactive compiling)" << std::endl;
     std::cout << "\tcodeGTransfer --ask" << std::endl << std::endl;
 }
-void printVersion()
+void PrintVersion()
 {
     std::cout << "codeGTransfer created by Guillaume Guillet, version " << CGT_VERSION_MAJOR << "." << CGT_VERSION_MINOR << std::endl;
 }
@@ -75,7 +79,7 @@ int main(int argc, char **argv)
 
     if (commands.size() <= 1)
     {
-        printHelp();
+        PrintHelp();
         return -1;
     }
 
@@ -84,12 +88,12 @@ int main(int argc, char **argv)
         //Commands
         if ( commands[i] == "--help")
         {
-            printHelp();
+            PrintHelp();
             return 0;
         }
         if ( commands[i] == "--version")
         {
-            printVersion();
+            PrintVersion();
             return 0;
         }
         if ( commands[i] == "--showPorts")
@@ -146,15 +150,19 @@ int main(int argc, char **argv)
     std::cout << "Port name : \""<< portName <<"\"" << std::endl;
 
     ///Opening file
-    std::ifstream fileIn( fileInPath );
+    std::ifstream fileIn( fileInPath, std::ios::binary | std::ios::ate); //get the file size
     if ( !fileIn )
     {
         std::cout << "Can't read the file \""<< fileInPath <<"\"" << std::endl;
         return -1;
     }
+    unsigned int fileSize = fileIn.tellg();
+
+    fileIn.clear();
+    fileIn.seekg(0); //Return to the beginning of the file
 
     ///Opening port
-    serial::Serial port(portName, 9600, serial::Timeout::simpleTimeout(100),
+    serial::Serial port(portName, 9600, serial::Timeout(50, 4000, 0, 4000, 0),
                         serial::bytesize_t::eightbits,
                         serial::parity_t::parity_none,
                         serial::stopbits_t::stopbits_one,
@@ -166,9 +174,98 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    std::cout << "Saying hello ... ";
+
     port.write("$H#");
     std::string result = port.read(20);
+
     std::cout << result << std::endl;
+    if (result != "HELLO\n")
+    {
+        std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+        return -1;
+    }
+
+    uint8_t dataBuffer[MAX_NUMOFDATA];
+    uint32_t startAddress = 0;
+
+    std::cout << "Sending a total of " << fileSize << " byte(s) ..." << std::endl << std::endl;
+
+    while ( fileIn.good() )
+    {
+        std::string dataToSend = "$W";
+        std::string dataSended;
+        uint8_t numOfData = 0;
+        uint8_t checksum = 0;
+
+        fileIn.read(reinterpret_cast<char*>(dataBuffer), MAX_NUMOFDATA);
+        numOfData = fileIn.gcount();
+        if (numOfData == 0)
+        {
+            continue;
+        }
+
+        checksum = codeg::CalculateChecksum(dataBuffer, numOfData); //Calculate checksum
+
+        codeg::PushUint8InString(checksum, dataToSend); //Push checksum
+        codeg::PushUint8InString(checksum, dataSended);
+        codeg::PushUint24InString(startAddress, dataToSend); //Push start address
+
+        for (unsigned int i=0; i<numOfData; ++i)
+        {
+            codeg::PushUint8InString(dataBuffer[i], dataToSend); //Push data
+            codeg::PushUint8InString(dataBuffer[i], dataSended);
+        }
+        dataToSend += '#';
+
+        ///Writing
+
+        std::cout << "Sending " << static_cast<unsigned int>(numOfData) << " byte(s) of data at address " << startAddress << " ... ";
+
+        port.write(dataToSend);
+
+        std::string resultWrite = port.read(20);
+
+        std::cout << resultWrite << std::endl;
+        if (resultWrite != "WRITED\n")
+        {
+            std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+            return -1;
+        }
+
+        ///Reading
+
+        std::cout << "Reading " << static_cast<unsigned int>(numOfData) << " byte(s) at address " << startAddress << " ... " << std::endl;
+
+        dataToSend = "$R";
+        codeg::PushUint24InString(startAddress, dataToSend); //Push start address
+        codeg::PushUint24InString(numOfData, dataToSend); //Push num of data
+        dataToSend += '#';
+
+        port.write(dataToSend);
+
+        std::string resultRead = port.read(500);
+
+        std::cout << resultRead << std::endl;
+        if ( resultRead.size() != static_cast<unsigned int>(10+numOfData*3) )
+        {
+            std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+            return -1;
+        }
+        resultRead.erase(0, 6);
+        resultRead.pop_back();
+
+        ///Compare
+        if ( resultRead != dataSended )
+        {
+            std::cout << "The board didn't do a successfully write/read to the memory !" << std::endl;
+            return -1;
+        }
+
+        startAddress += numOfData;
+    }
+
+    std::cout << "The board successfully write/read to the memory !" << std::endl;
 
     return 0;
 }

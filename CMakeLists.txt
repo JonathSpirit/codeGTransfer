@@ -102,6 +102,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/
 #Sources file
 target_sources(${PROJECT_NAME} PUBLIC "src/main.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
+target_sources(${PROJECT_NAME} PUBLIC "src/C_checksum.cpp")
 
 #Copy serial dll
 if (WIN32)

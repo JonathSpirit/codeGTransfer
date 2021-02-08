@@ -17,7 +17,14 @@
 #ifndef MAIN_H_INCLUDED
 #define MAIN_H_INCLUDED
 
-void printHelp();
-void printVersion();
+#include <string>
+#include <cstdint>
+
+void ShowAllPorts();
+
+void PrintHelp();
+void PrintVersion();
+
+uint8_t CalculateChecksum(uint8_t* data, uint8_t numOfData);
 
 #endif // MAIN_H_INCLUDED
