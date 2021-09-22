@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-include(ExternalProject)
-
 #Project
-project(codeGTransfer VERSION 0.1)
+project(codeGTransfer VERSION 0.2)
 
 #Policy
 cmake_policy(SET CMP0076 NEW) #target_sources
@@ -11,6 +9,24 @@ cmake_policy(SET CMP0076 NEW) #target_sources
 #Variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/debug)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/release)
+
+#Default build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+#Find submodules
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/submodules/serial/CMakeLists.txt")
+    message(FATAL_ERROR "The submodules were not downloaded! Please update submodules and try again.")
+endif()
+
+#Patch the serial directory with a new CMakeLists file (to avoid the catkin/python dependency until it's officialy removed in serial)
+#https://github.com/wjwwood/serial
+configure_file("${PROJECT_SOURCE_DIR}/submodules/CMakeLists_serial_nocatkin.txt" "${PROJECT_SOURCE_DIR}/submodules/serial/CMakeLists.txt" COPYONLY)
+
+#Add serial
+set(SERIAL_ENABLE_CATKIN OFF CACHE BOOL "enable/disable catkin in serial")
+add_subdirectory("submodules/serial")
 
 #Default is 32bit
 if (NOT DEFINED TARGET_ARCH)
@@ -37,32 +53,6 @@ if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         set(TARGET_ARCH_FLAG "")
     endif()
 endif()
-
-#Add external project
-if (WIN32)
-    ExternalProject_Add(catkin
-        GIT_REPOSITORY  https://github.com/ros/catkin.git
-        GIT_TAG         noetic-devel
-        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/catkin
-        INSTALL_COMMAND ""
-    )
-endif()
-
-ExternalProject_Add(serial
-    GIT_REPOSITORY  https://github.com/wjwwood/serial.git
-    GIT_TAG         master
-    CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
-    if (WIN32)
-        CMAKE_ARGS      -D catkin_DIR=${CMAKE_BINARY_DIR}/catkin-prefix/src/catkin-build/devel/share/catkin/cmake
-        if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-            CMAKE_ARGS      -D CMAKE_CXX_FLAGS=${TARGET_ARCH_FLAG}
-        endif()
-    else()
-        CMAKE_ARGS      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/serial
-        CMAKE_ARGS      -D CMAKE_CXX_FLAGS=${TARGET_ARCH_FLAG}
-    endif()
-    CMAKE_ARGS      -D CMAKE_BUILD_TYPE=Release
-)
 
 #Configure header file
 configure_file(CMakeConfig.hpp.in CMakeConfig.hpp)
@@ -94,45 +84,18 @@ endif()
 #Executable
 add_executable(${PROJECT_NAME})
 
-#Dependency
-if (WIN32)
-    add_dependencies(${PROJECT_NAME} catkin)
-endif()
-
+#Dependencies
 add_dependencies(${PROJECT_NAME} serial)
 
 #Includes path
 target_include_directories(${PROJECT_NAME} PUBLIC "include/")
 target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}")
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/include/")
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/submodules/serial/include/")
 
 #Sources file
 target_sources(${PROJECT_NAME} PUBLIC "src/main.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_string.cpp")
 target_sources(${PROJECT_NAME} PUBLIC "src/C_checksum.cpp")
 
-#Copy serial dll
-if (WIN32)
-    if (MSVC)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_BINARY_DIR}/serial/bin/serial.dll
-                    ${CMAKE_BINARY_DIR}/serial.dll)
-    else ()
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    ${CMAKE_BINARY_DIR}/serial/bin/libserial.dll
-                    ${CMAKE_BINARY_DIR}/libserial.dll)
-    endif ()
-endif()
-
 #Library
-if (WIN32)
-    if (MSVC)
-        target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/serial.lib")
-    else()
-        target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.dll.a")
-    endif()
-else()
-    target_link_libraries(${PROJECT_NAME} PUBLIC "${PROJECT_BINARY_DIR}/serial/lib/libserial.so")
-endif()
+target_link_libraries(${PROJECT_NAME} serial)
