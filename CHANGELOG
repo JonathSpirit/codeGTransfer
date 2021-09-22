@@ -4,6 +4,7 @@ codeGTransfer V0.2 :
     - CMakeLists now apply a patched CMakeLists file in the "serial" submodule to remove unneeded dependency of catkin/python
     - Set default build type to Release
     - Set default arch_type to nothing (auto)
+    - Add readme
 
 codeGTransfer V0.1 :
     - Intial release
