@@ -28,20 +28,15 @@ configure_file("${PROJECT_SOURCE_DIR}/submodules/CMakeLists_serial_nocatkin.txt"
 set(SERIAL_ENABLE_CATKIN OFF CACHE BOOL "enable/disable catkin in serial")
 add_subdirectory("submodules/serial")
 
-#Default is 32bit
-if (NOT DEFINED TARGET_ARCH)
-    set(TARGET_ARCH "32")
-endif()
-
 #Set cache entry
-set(TARGET_ARCH "" CACHE STRING "Set architecture type (32 or 64)")
+set(TARGET_ARCH "" CACHE STRING "Set architecture type (32 or 64 or nothing (auto))")
 
-#Not defined = default to empty
+#Default TARGET_ARCH is nothing (auto)
 if (NOT DEFINED TARGET_ARCH)
     set(TARGET_ARCH "")
 endif()
 
-#Set compiler 32/64 flag
+#Set compiler 32/64/(auto) flag
 set(TARGET_ARCH_FLAG "")
 
 if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")

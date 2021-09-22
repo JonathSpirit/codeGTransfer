@@ -3,6 +3,7 @@ codeGTransfer V0.2 :
     - "serial" is now a git submodule
     - CMakeLists now apply a patched CMakeLists file in the "serial" submodule to remove unneeded dependency of catkin/python
     - Set default build type to Release
+    - Set default arch_type to nothing (auto)
 
 codeGTransfer V0.1 :
     - Intial release
