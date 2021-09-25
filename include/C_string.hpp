@@ -20,14 +20,9 @@
 #include <string>
 #include <vector>
 
-namespace codeg
-{
-
 size_t Split(const std::string& str, std::vector<std::string>& buff, char delimiter);
 
 void PushUint8InString(uint8_t value, std::string& str);
 void PushUint24InString(uint32_t value, std::string& str);
-
-}//end codeg
 
 #endif // C_STRING_H_INCLUDED

@@ -17,9 +17,6 @@
 #include "C_string.hpp"
 #include <sstream>
 
-namespace codeg
-{
-
 size_t Split(const std::string& str, std::vector<std::string>& buff, char delimiter)
 {
    std::string buffStr;
@@ -62,5 +59,3 @@ void PushUint24InString(uint32_t value, std::string& str)
     buff = (value%10) + '0';
     str += buff;
 }
-
-}//end codeg

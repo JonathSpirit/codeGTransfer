@@ -1,2 +1,15 @@
+codeGTransfer V0.2 :
+    - Remove cmake dependency of "ExternalProject"
+    - "serial" is now a git submodule
+    - CMakeLists now apply a patched CMakeLists file in the "serial" submodule to remove unneeded dependency of catkin/python
+    - Set default build type to Release
+    - Set default arch_type to nothing (auto)
+    - Add readme
+    - Add flash compatibility
+    - Add the possibility to start at a custom address
+    - Add the possibility to do a verify/read only pass
+    - Cleaning
+    - Compatiblity with MM1_Writer_code revision 2
+
 codeGTransfer V0.1 :
     - Intial release

@@ -19,11 +19,6 @@
 
 #include <cstdint>
 
-namespace codeg
-{
-
 uint8_t CalculateChecksum(uint8_t* data, uint8_t numOfData);
-
-}//end codeg
 
 #endif // C_CHECKSUM_H_INCLUDED

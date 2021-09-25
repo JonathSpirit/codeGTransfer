@@ -21,7 +21,6 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <thread>
 
 #include "serial/serial.h"
 
@@ -30,8 +29,13 @@
 #include "CMakeConfig.hpp"
 
 #define MAX_NUMOFDATA 100
+#define SECTOR_SIZE 4096
 
-using namespace std;
+enum MEMORY_MODEL : uint8_t
+{
+    MEMM_EEPROM = 0,
+    MEMM_FLASH  = 1
+};
 
 void ShowAllPorts()
 {
@@ -50,19 +54,31 @@ void PrintHelp()
     std::cout << "Set the input file to be transfered" << std::endl;
     std::cout << "\tcodeGTransfer --in=<path>" << std::endl << std::endl;
 
+    std::cout << "Set the memory model (must be eeprom, flash or default) default to eeprom" << std::endl;
+    std::cout << "\tcodeGTransfer --model=<name>" << std::endl << std::endl;
+
+    std::cout << "Disable writing and flash erase" << std::endl;
+    std::cout << "\tcodeGTransfer --verify" << std::endl << std::endl;
+
+    std::cout << "Disable flash erase" << std::endl;
+    std::cout << "\tcodeGTransfer --noErase" << std::endl << std::endl;
+
+    std::cout << "Set the start address, default 0" << std::endl;
+    std::cout << "\tcodeGTransfer --start=<number>" << std::endl << std::endl;
+
     std::cout << "Set the port name" << std::endl;
     std::cout << "\tcodeGTransfer --port=<name>" << std::endl << std::endl;
 
     std::cout << "Print all the available ports (and do nothing else)" << std::endl;
-    std::cout << "\tcodeGGcompiler --showPorts" << std::endl << std::endl;
+    std::cout << "\tcodeGTransfer --showPorts" << std::endl << std::endl;
 
     std::cout << "Print the version (and do nothing else)" << std::endl;
-    std::cout << "\tcodeGGcompiler --version" << std::endl << std::endl;
+    std::cout << "\tcodeGTransfer --version" << std::endl << std::endl;
 
     std::cout << "Print the help page (and do nothing else)" << std::endl;
     std::cout << "\tcodeGTransfer --help" << std::endl << std::endl;
 
-    std::cout << "Ask the user how he want to compile his file (interactive compiling)" << std::endl;
+    std::cout << "Ask the user how he want to transmit his file (interactive)" << std::endl;
     std::cout << "\tcodeGTransfer --ask" << std::endl << std::endl;
 }
 void PrintVersion()
@@ -74,6 +90,14 @@ int main(int argc, char **argv)
 {
     std::string portName;
     std::string fileInPath;
+    uint8_t memoryModel = MEMM_EEPROM;
+    uint32_t startAddress = 0;
+
+    std::string transmitBuffer;
+    std::string receiveBuffer;
+
+    bool enableWrite = true;
+    bool enableFlashErase = true;
 
     std::vector<std::string> commands(argv, argv + argc);
 
@@ -83,25 +107,25 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    for (unsigned int i=1; i<commands.size(); ++i)
+    for (std::size_t i=1; i<commands.size(); ++i)
     {
         //Commands
-        if ( commands[i] == "--help")
+        if (commands[i] == "--help")
         {
             PrintHelp();
             return 0;
         }
-        if ( commands[i] == "--version")
+        if (commands[i] == "--version")
         {
             PrintVersion();
             return 0;
         }
-        if ( commands[i] == "--showPorts")
+        if (commands[i] == "--showPorts")
         {
             ShowAllPorts();
             return 0;
         }
-        if ( commands[i] == "--ask")
+        if (commands[i] == "--ask")
         {
             std::cout << "Please insert the input path of the file"<< std::endl <<"> ";
             std::getline(std::cin, fileInPath);
@@ -111,10 +135,20 @@ int main(int argc, char **argv)
             std::getline(std::cin, fileInPath);
             continue;
         }
+        if (commands[i] == "--verify")
+        {
+            enableWrite = false;
+            continue;
+        }
+        if (commands[i] == "--noErase")
+        {
+            enableFlashErase = false;
+            continue;
+        }
 
         //Commands with an argument
         std::vector<std::string> splitedCommand;
-        codeg::Split(commands[i], splitedCommand, '=');
+        Split(commands[i], splitedCommand, '=');
 
         if (splitedCommand.size() == 2)
         {
@@ -126,6 +160,41 @@ int main(int argc, char **argv)
             if ( splitedCommand[0] == "--port")
             {
                 portName = splitedCommand[1];
+                continue;
+            }
+            if ( splitedCommand[0] == "--model")
+            {
+                if (splitedCommand[1] == "eeprom")
+                {
+                    memoryModel = MEMM_EEPROM;
+                }
+                else if (splitedCommand[1] == "flash")
+                {
+                    memoryModel = MEMM_FLASH;
+                }
+                else if (splitedCommand[1] == "default")
+                {
+                    memoryModel = MEMM_EEPROM;
+                }
+                else
+                {
+                    std::cout << "Unknown memory model : \""<< splitedCommand[1] <<"\" !" << std::endl;
+                    return -1;
+                }
+                continue;
+            }
+            if ( splitedCommand[0] == "--start")
+            {
+                try
+                {
+                    startAddress = std::stoul(splitedCommand[1]);
+                }
+                catch (std::exception& e)
+                {
+                    std::cout << "Can't convert \""<< splitedCommand[1] << "\" as a number !" << std::endl;
+                    std::cout << e.what() << std::endl;
+                    return -1;
+                }
                 continue;
             }
         }
@@ -156,10 +225,18 @@ int main(int argc, char **argv)
         std::cout << "Can't read the file \""<< fileInPath <<"\"" << std::endl;
         return -1;
     }
-    unsigned int fileSize = fileIn.tellg();
+    std::ifstream::pos_type fileSize = fileIn.tellg();
 
     fileIn.clear();
-    fileIn.seekg(0); //Return to the beginning of the file
+
+    if (startAddress >= fileSize)
+    {
+        std::cout << "Can't start at address "<< startAddress <<", the file size is only "<< fileSize <<" bytes !" << std::endl;
+        return -1;
+    }
+
+    fileIn.seekg(startAddress); //Return to the start address
+    std::cout << "Starting address : " << startAddress << std::endl;
 
     ///Opening port
     serial::Serial port(portName, 9600, serial::Timeout(50, 4000, 0, 4000, 0),
@@ -174,27 +251,102 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    std::cout << std::endl;
+
     std::cout << "Saying hello ... ";
 
     port.write("$H#");
-    std::string result = port.read(20);
+    receiveBuffer = port.read(20);
 
-    std::cout << result << std::endl;
-    if (result != "HELLO\n")
+    std::cout << receiveBuffer << std::endl;
+    if (receiveBuffer != "HELLO\n")
     {
         std::cout << "The board didn't respond or sent a bad response !" << std::endl;
         return -1;
     }
 
-    uint8_t dataBuffer[MAX_NUMOFDATA];
-    uint32_t startAddress = 0;
+    std::cout << "Get board information ... ";
 
-    std::cout << "Sending a total of " << fileSize << " byte(s) ..." << std::endl << std::endl;
+    port.write("$I#");
+    receiveBuffer = port.read(100);
+
+    std::cout << std::endl << receiveBuffer << std::endl;
+    if (receiveBuffer.empty())
+    {
+        std::cout << "The board didn't respond !" << std::endl;
+        return -1;
+    }
+
+    std::cout << "Set memory model ... ";
+
+    transmitBuffer = "$Mx#";
+    transmitBuffer[2] = memoryModel + '0';
+    port.write(transmitBuffer);
+    receiveBuffer = port.read(20);
+
+    std::cout << receiveBuffer << std::endl;
+    if (receiveBuffer.size() == 2)
+    {
+        if ((receiveBuffer[0]-'0') != memoryModel)
+        {
+            std::cout << "The board returned a bad memory model !" << std::endl;
+            return -1;
+        }
+    }
+    else
+    {
+        std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+        return -1;
+    }
+
+    std::cout << std::endl;
+
+    if (enableWrite)
+    {
+        if (memoryModel == MEMM_FLASH)
+        {
+            if (enableFlashErase)
+            {
+                uint8_t startSector = 0;
+                uint8_t countSector = (fileSize/SECTOR_SIZE) + 1;
+
+                std::cout << "Erasing from sector "<< static_cast<int>(startSector) <<" to sector " << static_cast<int>(startSector+countSector) << " ..."  << std::endl;
+                transmitBuffer = "$FES";
+                PushUint8InString(startSector, transmitBuffer);
+                PushUint8InString(countSector, transmitBuffer);
+                transmitBuffer += '#';
+
+                port.write(transmitBuffer);
+                receiveBuffer = port.read(40);
+                std::cout << receiveBuffer << std::endl;
+                if (receiveBuffer.find("ERASED") == std::string::npos)
+                {
+                    std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+                    return -1;
+                }
+            }
+            else
+            {
+                std::cout << "Flash erase skipped" << std::endl;
+            }
+        }
+
+        std::cout << "Write and verify a total of " << fileSize << " byte(s) ..." << std::endl << std::endl;
+    }
+    else
+    {
+        std::cout << "Write skipped" << std::endl;
+        std::cout << "Verify only a total of " << fileSize << " byte(s) ..." << std::endl << std::endl;
+    }
+
+    uint8_t dataBuffer[MAX_NUMOFDATA];
 
     while ( fileIn.good() )
     {
-        std::string dataToSend = "$W";
-        std::string dataSended;
+        std::cout << (startAddress*100)/fileSize << "% done ..." << std::endl;
+
+        transmitBuffer = "$W";
+        std::string dataReadCompare;
         uint8_t numOfData = 0;
         uint8_t checksum = 0;
 
@@ -205,58 +357,61 @@ int main(int argc, char **argv)
             continue;
         }
 
-        checksum = codeg::CalculateChecksum(dataBuffer, numOfData); //Calculate checksum
+        checksum = CalculateChecksum(dataBuffer, numOfData); //Calculate checksum
 
-        codeg::PushUint8InString(checksum, dataToSend); //Push checksum
-        codeg::PushUint8InString(checksum, dataSended);
-        codeg::PushUint24InString(startAddress, dataToSend); //Push start address
+        PushUint8InString(checksum, transmitBuffer); //Push checksum
+        PushUint8InString(checksum, dataReadCompare);
+        PushUint24InString(startAddress, transmitBuffer); //Push start address
+        PushUint24InString(startAddress, dataReadCompare);
 
         for (unsigned int i=0; i<numOfData; ++i)
         {
-            codeg::PushUint8InString(dataBuffer[i], dataToSend); //Push data
-            codeg::PushUint8InString(dataBuffer[i], dataSended);
+            PushUint8InString(dataBuffer[i], transmitBuffer); //Push data
+            PushUint8InString(dataBuffer[i], dataReadCompare);
         }
-        dataToSend += '#';
+        transmitBuffer += '#';
 
         ///Writing
-
-        std::cout << "Sending " << static_cast<unsigned int>(numOfData) << " byte(s) of data at address " << startAddress << " ... ";
-
-        port.write(dataToSend);
-
-        std::string resultWrite = port.read(20);
-
-        std::cout << resultWrite << std::endl;
-        if (resultWrite != "WRITED\n")
+        if (enableWrite)
         {
-            std::cout << "The board didn't respond or sent a bad response !" << std::endl;
-            return -1;
+            std::cout << "Writing " << static_cast<unsigned int>(numOfData) << " byte(s) of data at address " << startAddress << " ... ";
+
+            port.write(transmitBuffer);
+
+            receiveBuffer = port.read(20);
+
+            std::cout << receiveBuffer << std::endl;
+            if (receiveBuffer != "WRITED\n")
+            {
+                std::cout << "The board didn't respond or sent a bad response !" << std::endl;
+                return -1;
+            }
         }
 
         ///Reading
 
         std::cout << "Reading " << static_cast<unsigned int>(numOfData) << " byte(s) at address " << startAddress << " ... " << std::endl;
 
-        dataToSend = "$R";
-        codeg::PushUint24InString(startAddress, dataToSend); //Push start address
-        codeg::PushUint24InString(numOfData, dataToSend); //Push num of data
-        dataToSend += '#';
+        transmitBuffer = "$R";
+        PushUint24InString(startAddress, transmitBuffer); //Push start address
+        PushUint24InString(numOfData, transmitBuffer); //Push num of data
+        transmitBuffer += '#';
 
-        port.write(dataToSend);
+        port.write(transmitBuffer);
 
-        std::string resultRead = port.read(500);
+        receiveBuffer = port.read(500);
 
-        std::cout << resultRead << std::endl;
-        if ( resultRead.size() != static_cast<unsigned int>(10+numOfData*3) )
+        std::cout << receiveBuffer << std::endl;
+        if ( receiveBuffer.size() != static_cast<unsigned int>(18+numOfData*3) )
         {
             std::cout << "The board didn't respond or sent a bad response !" << std::endl;
             return -1;
         }
-        resultRead.erase(0, 6);
-        resultRead.pop_back();
+        receiveBuffer.erase(0, 6);
+        receiveBuffer.pop_back();
 
         ///Compare
-        if ( resultRead != dataSended )
+        if ( receiveBuffer != dataReadCompare )
         {
             std::cout << "The board didn't do a successfully write/read to the memory !" << std::endl;
             return -1;
