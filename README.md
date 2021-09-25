@@ -71,7 +71,7 @@ Print the version (and do nothing else)
 Print the help page (and do nothing else)
         codeGTransfer --help
 
-Ask the user how he want to compile his file (interactive compiling)
+Ask the user how he want to transmit his file (interactive)
         codeGTransfer --ask
 ```
 

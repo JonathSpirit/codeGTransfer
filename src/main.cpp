@@ -63,6 +63,9 @@ void PrintHelp()
     std::cout << "Disable flash erase" << std::endl;
     std::cout << "\tcodeGTransfer --noErase" << std::endl << std::endl;
 
+    std::cout << "Set the start address, default 0" << std::endl;
+    std::cout << "\tcodeGTransfer --start=<number>" << std::endl << std::endl;
+
     std::cout << "Set the port name" << std::endl;
     std::cout << "\tcodeGTransfer --port=<name>" << std::endl << std::endl;
 
@@ -75,7 +78,7 @@ void PrintHelp()
     std::cout << "Print the help page (and do nothing else)" << std::endl;
     std::cout << "\tcodeGTransfer --help" << std::endl << std::endl;
 
-    std::cout << "Ask the user how he want to compile his file (interactive compiling)" << std::endl;
+    std::cout << "Ask the user how he want to transmit his file (interactive)" << std::endl;
     std::cout << "\tcodeGTransfer --ask" << std::endl << std::endl;
 }
 void PrintVersion()
