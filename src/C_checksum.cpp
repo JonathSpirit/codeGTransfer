@@ -16,9 +16,6 @@
 
 #include "C_checksum.hpp"
 
-namespace codeg
-{
-
 uint8_t CalculateChecksum(uint8_t* data, uint8_t numOfData)
 {
     uint8_t checksum = 0;
@@ -28,5 +25,3 @@ uint8_t CalculateChecksum(uint8_t* data, uint8_t numOfData)
     }
     return checksum;
 }
-
-}//end codeg
