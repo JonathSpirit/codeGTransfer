@@ -39,3 +39,44 @@ you can find more info here : [MM1_Writer_code](https://github.com/JonathSpirit/
 
 ![bug](https://img.shields.io/github/issues/JonathSpirit/codeGTransfer/bug)\
 ![fixed](https://img.shields.io/github/issues/JonathSpirit/codeGTransfer/fixed)
+
+## Usage and exemple
+```
+codeGTransfer usage :
+
+Set the input file to be transfered
+        codeGTransfer --in=<path>
+
+Set the memory model (must be eeprom, flash or default) default to eeprom
+        codeGTransfer --model=<name>
+
+Disable writing and flash erase
+        codeGTransfer --verify
+
+Disable flash erase
+        codeGTransfer --noErase
+
+Set the start address, default 0
+        codeGTransfer --start=<number>
+
+Set the port name
+        codeGTransfer --port=<name>
+
+Print all the available ports (and do nothing else)
+        codeGTransfer --showPorts
+
+Print the version (and do nothing else)
+        codeGTransfer --version
+
+Print the help page (and do nothing else)
+        codeGTransfer --help
+
+Ask the user how he want to compile his file (interactive compiling)
+        codeGTransfer --ask
+```
+
+To transmit/write a file into the port COM3 with the flah memory model :\
+``` codeGTransfer --in="input.cg" --port="COM3" --model="flash" ```
+
+To verify the same file :\
+``` codeGTransfer --in="input.cg" --port="COM3" --model="flash" --verify ```
