@@ -25,7 +25,17 @@ limitations under the License.
 </table>
 
 ## Description
-codeGTransfer is a utility for sending a compiled codeG file and transmit it to the [memory module writer](https://github.com/JonathSpirit/MM1_Writer.git).
+codeGTransfer is a utility for transmitting a compiled codeG file to the [memory module writer](https://github.com/JonathSpirit/MM1_Writer.git) board
+and write the file into the memory.
 
 codeG is a homemade binary language and codeGGenerator is the compiler [codeGGenerator](https://github.com/JonathSpirit/codeGGenerator)
-[CodeG_binary](https://github.com/JonathSpirit/GComputer_standard)
+[CodeG_binary](https://github.com/JonathSpirit/GComputer_standard).
+
+you can find more info here : [MM1_Writer_code](https://github.com/JonathSpirit/MM1_Writer_code)
+
+## Stats
+
+![version](https://img.shields.io/badge/version-codeGTransfer_V0.2-blue)
+
+![bug](https://img.shields.io/github/issues/JonathSpirit/codeGTransfer/bug)\
+![fixed](https://img.shields.io/github/issues/JonathSpirit/codeGTransfer/fixed)
