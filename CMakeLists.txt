@@ -24,10 +24,6 @@ endif()
 #https://github.com/wjwwood/serial
 configure_file("${PROJECT_SOURCE_DIR}/submodules/CMakeLists_serial_nocatkin.txt" "${PROJECT_SOURCE_DIR}/submodules/serial/CMakeLists.txt" COPYONLY)
 
-#Add serial
-set(SERIAL_ENABLE_CATKIN OFF CACHE BOOL "enable/disable catkin in serial")
-add_subdirectory("submodules/serial")
-
 #Set cache entry
 set(TARGET_ARCH "" CACHE STRING "Set architecture type (32 or 64 or nothing (auto))")
 
@@ -75,6 +71,10 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -s")
 endif()
+
+#Add serial
+set(SERIAL_ENABLE_CATKIN OFF CACHE BOOL "enable/disable catkin in serial")
+add_subdirectory("submodules/serial")
 
 #Executable
 add_executable(${PROJECT_NAME})
