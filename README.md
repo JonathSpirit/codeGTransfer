@@ -80,3 +80,14 @@ To transmit/write a file into the port COM3 with the flah memory model :\
 
 To verify the same file :\
 ``` codeGTransfer --in="input.cg" --port="COM3" --model="flash" --verify ```
+
+## Build
+To build the project, you need CMake and init all git submodules.
+
+And then :
+```
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
