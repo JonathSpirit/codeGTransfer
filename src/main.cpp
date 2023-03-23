@@ -22,7 +22,7 @@
 #include <vector>
 #include <string>
 
-#include "serial/serial.h"
+#include "serial/serial.hpp"
 
 #include "C_string.hpp"
 #include "C_checksum.hpp"
@@ -240,10 +240,10 @@ int main(int argc, char **argv)
 
     ///Opening port
     serial::Serial port(portName, 9600, serial::Timeout(50, 4000, 0, 4000, 0),
-                        serial::bytesize_t::eightbits,
-                        serial::parity_t::parity_none,
-                        serial::stopbits_t::stopbits_one,
-                        serial::flowcontrol_t::flowcontrol_none);
+                        serial::ByteSizes::EIGHT_BITS,
+                        serial::Parity::NONE,
+                        serial::StopBits::ONE,
+                        serial::FlowControls::NONE);
 
     if( !port.isOpen() )
     {

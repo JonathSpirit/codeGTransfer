@@ -20,12 +20,8 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/submodules/serial/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! Please update submodules and try again.")
 endif()
 
-#Patch the serial directory with a new CMakeLists file (to avoid the catkin/python dependency until it's officialy removed in serial)
-#https://github.com/wjwwood/serial
-configure_file("${PROJECT_SOURCE_DIR}/submodules/CMakeLists_serial_nocatkin.txt" "${PROJECT_SOURCE_DIR}/submodules/serial/CMakeLists.txt" COPYONLY)
-
 #Add serial
-set(SERIAL_ENABLE_CATKIN OFF CACHE BOOL "enable/disable catkin in serial")
+set(SERIAL_BUILD_DOC OFF CACHE BOOL "")
 add_subdirectory("submodules/serial")
 
 #Set cache entry
